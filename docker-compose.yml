@@ -1,0 +1,36 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: assessment_postgres
+    environment:
+      POSTGRES_DB: assessment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - assessment_network
+
+  python:
+    image: python:3.11
+    container_name: assessment_python
+    working_dir: /app
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./requirements.txt:/app/requirements.txt
+    command: sh -c "pip install -r requirements.txt && tail -f /dev/null"
+    depends_on:
+      - postgres
+    networks:
+      - assessment_network
+
+networks:
+  assessment_network:
+
+volumes:
+  postgres_data:
