@@ -44,9 +44,6 @@ def main():
     invalid_dates = df["date"].isna().sum()
     invalid_prices = df["price"].isna().sum()
 
-    print(f"Invalid dates: {invalid_dates}")
-    print(f"Invalid prices: {invalid_prices}")
-
     # Remove rows without valid required values
     before = len(df)
 
@@ -66,9 +63,16 @@ def main():
     )
 
     skipped = before - len(df)
+    rows_to_insert = len(df)
 
+    print("\nLOAD SUMMARY")
+    print("------------")
+    print(f"Rows read: {before}")
+    print(f"Rows inserted: {rows_to_insert}")
     print(f"Rows skipped: {skipped}")
-    print(f"Rows remaining: {len(df)}")
+    print("Skip reasons:")
+    print(f"  Invalid dates: {invalid_dates}")
+    print(f"  Invalid prices: {invalid_prices}")
 
     # Connect to PostgreSQL
     print("\nConnecting to PostgreSQL...")
