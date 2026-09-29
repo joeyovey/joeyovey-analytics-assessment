@@ -15,15 +15,15 @@ services:
       - assessment_network
 
   python:
-    image: python:3.11
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: assessment_python
     working_dir: /app
     volumes:
       - ./src:/app/src
       - ./data:/app/data
       - ./outputs:/app/outputs
-      - ./requirements.txt:/app/requirements.txt
-    command: sh -c "pip install -r requirements.txt && tail -f /dev/null"
     depends_on:
       - postgres
     networks:
