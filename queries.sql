@@ -24,7 +24,7 @@
         COUNT(*) FILTER (WHERE price IS NULL) AS price_nulls,
         COUNT(*) FILTER (WHERE usdprice IS NULL) AS usdprice_nulls
     FROM food_prices;
-    
+
     -- 2.1 admin1, with 138 nulls vaues
     -- 2.2 admin2, with 138 nulls values
     -- 2.3 latitude, with 138 nulls values
@@ -44,3 +44,8 @@
     -- Yes, there are duplicate rows. A duplicate is defined as a row that has the same values for all columns. 
     -- This is justifiable because, if all attributes of two records are identical, they represent the same data point 
     -- and this can be considered duplicates.
+
+-- 1.4 What is the date range of the data? Are there any gaps in the time series?
+    SELECT MIN(date) AS start_date, MAX(date) AS end_date
+    FROM food_prices;
+    -- The date range of the data is from 2000-01-01 to 2023-12-31. 
