@@ -56,4 +56,86 @@
     GROUP BY countryiso3, commodity
     ORDER BY record_count DESC
     LIMIT 5;
-    -- 
+
+
+-- A-2: Analytical SQL (queries.sql, continued)
+    -- 2.1 Top movers: Which 10 commodities had the largest average price increase between the first and last year in the dataset? Show the start price, end price, and percentage change.
+    SELECT commodity,
+    -- Average price in the first year
+    ROUND(
+        AVG(price) FILTER (
+            WHERE EXTRACT(YEAR FROM date) = (
+                SELECT MIN(EXTRACT(YEAR FROM date))
+                FROM food_prices
+            )
+        ),
+        2
+    ) AS start_price,
+
+    -- Average price in the last year
+    ROUND(
+        AVG(price) FILTER (
+            WHERE EXTRACT(YEAR FROM date) = (
+                SELECT MAX(EXTRACT(YEAR FROM date))
+                FROM food_prices
+            )
+        ),
+        2
+    ) AS end_price,
+
+    -- Percentage increase
+    ROUND(
+        (
+            (
+                AVG(price) FILTER (
+                    WHERE EXTRACT(YEAR FROM date) = (
+                        SELECT MAX(EXTRACT(YEAR FROM date))
+                        FROM food_prices
+                    )
+                )
+                -
+                AVG(price) FILTER (
+                    WHERE EXTRACT(YEAR FROM date) = (
+                        SELECT MIN(EXTRACT(YEAR FROM date))
+                        FROM food_prices
+                    )
+                )
+            )
+            /
+            NULLIF(
+                AVG(price) FILTER (
+                    WHERE EXTRACT(YEAR FROM date) = (
+                        SELECT MIN(EXTRACT(YEAR FROM date))
+                        FROM food_prices
+                    )
+                ),
+                0
+            )
+        ) * 100,
+        2
+    ) AS percentage_change
+
+FROM food_prices
+
+GROUP BY commodity
+
+HAVING
+    AVG(price) FILTER (
+        WHERE EXTRACT(YEAR FROM date) = (
+            SELECT MIN(EXTRACT(YEAR FROM date))
+            FROM food_prices
+        )
+    ) IS NOT NULL
+
+    AND
+
+    AVG(price) FILTER (
+        WHERE EXTRACT(YEAR FROM date) = (
+            SELECT MAX(EXTRACT(YEAR FROM date))
+            FROM food_prices
+        )
+    ) IS NOT NULL
+
+ORDER BY percentage_change DESC
+
+LIMIT 10;
