@@ -49,3 +49,11 @@
     SELECT MIN(date) AS start_date, MAX(date) AS end_date
     FROM food_prices;
     -- The date range of the data is from 2000-01-01 to 2023-12-31. 
+
+-- 1.5  Which (country, commodity) pairs have the most price records?
+    SELECT countryiso3, commodity, COUNT(*) AS record_count
+    FROM food_prices
+    GROUP BY countryiso3, commodity
+    ORDER BY record_count DESC
+    LIMIT 5;
+    -- 
