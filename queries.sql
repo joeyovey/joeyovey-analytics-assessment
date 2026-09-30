@@ -176,3 +176,38 @@
     GROUP BY commodity
     HAVING COUNT(*) > 1
     ORDER BY price_standard_deviation DESC;
+
+
+-- Affordability trend: Pick one country. Show the year-over-year change in average food price using a CTE or subquery.
+    WITH yearly_prices AS (
+        SELECT
+            EXTRACT(YEAR FROM date)::int AS year,
+            AVG(price) AS average_price
+        FROM food_prices
+        WHERE countryiso3 = 'NGA'
+        GROUP BY EXTRACT(YEAR FROM date)
+    ),
+
+    yearly_comparison AS (
+        SELECT
+            year,
+            average_price,
+            LAG(average_price) OVER (
+                ORDER BY year
+            ) AS previous_year_price
+        FROM yearly_prices
+    )
+
+    SELECT
+        year,
+            ROUND(average_price, 2) AS average_price,
+            ROUND(previous_year_price, 2) AS previous_year_price,
+            ROUND(
+                (
+                    (average_price - previous_year_price)
+                    / NULLIF(previous_year_price, 0)
+                ) * 100,
+                2
+            ) AS yoy_percentage_change
+    FROM yearly_comparison
+    ORDER BY year;
