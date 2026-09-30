@@ -165,3 +165,14 @@
         ORDER BY
             category,
             country_rank;
+
+
+-- 2.3 Volatility: For each commodity, compute the standard deviation of price over time. Which commodities are the most price-volatile?
+    SELECT
+        commodity,
+        COUNT(*) AS price_records,
+        ROUND(STDDEV_SAMP(price), 2) AS price_standard_deviation
+    FROM food_prices
+    GROUP BY commodity
+    HAVING COUNT(*) > 1
+    ORDER BY price_standard_deviation DESC;
