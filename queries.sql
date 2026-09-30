@@ -60,82 +60,108 @@
 
 -- A-2: Analytical SQL (queries.sql, continued)
     -- 2.1 Top movers: Which 10 commodities had the largest average price increase between the first and last year in the dataset? Show the start price, end price, and percentage change.
-    SELECT commodity,
-    -- Average price in the first year
-    ROUND(
-        AVG(price) FILTER (
-            WHERE EXTRACT(YEAR FROM date) = (
-                SELECT MIN(EXTRACT(YEAR FROM date))
-                FROM food_prices
-            )
-        ),
-        2
-    ) AS start_price,
+        SELECT commodity,
+        -- Average price in the first year
+        ROUND(
+            AVG(price) FILTER (
+                WHERE EXTRACT(YEAR FROM date) = (
+                    SELECT MIN(EXTRACT(YEAR FROM date))
+                    FROM food_prices
+                )
+            ),
+            2
+        ) AS start_price,
 
-    -- Average price in the last year
-    ROUND(
-        AVG(price) FILTER (
-            WHERE EXTRACT(YEAR FROM date) = (
-                SELECT MAX(EXTRACT(YEAR FROM date))
-                FROM food_prices
-            )
-        ),
-        2
-    ) AS end_price,
+        -- Average price in the last year
+        ROUND(
+            AVG(price) FILTER (
+                WHERE EXTRACT(YEAR FROM date) = (
+                    SELECT MAX(EXTRACT(YEAR FROM date))
+                    FROM food_prices
+                )
+            ),
+            2
+        ) AS end_price,
 
-    -- Percentage increase
-    ROUND(
-        (
+        -- Percentage increase
+        ROUND(
             (
-                AVG(price) FILTER (
-                    WHERE EXTRACT(YEAR FROM date) = (
-                        SELECT MAX(EXTRACT(YEAR FROM date))
-                        FROM food_prices
+                (
+                    AVG(price) FILTER (
+                        WHERE EXTRACT(YEAR FROM date) = (
+                            SELECT MAX(EXTRACT(YEAR FROM date))
+                            FROM food_prices
+                        )
+                    )
+                    -
+                    AVG(price) FILTER (
+                        WHERE EXTRACT(YEAR FROM date) = (
+                            SELECT MIN(EXTRACT(YEAR FROM date))
+                            FROM food_prices
+                        )
                     )
                 )
-                -
-                AVG(price) FILTER (
-                    WHERE EXTRACT(YEAR FROM date) = (
-                        SELECT MIN(EXTRACT(YEAR FROM date))
-                        FROM food_prices
-                    )
+                /
+                NULLIF(
+                    AVG(price) FILTER (
+                        WHERE EXTRACT(YEAR FROM date) = (
+                            SELECT MIN(EXTRACT(YEAR FROM date))
+                            FROM food_prices
+                        )
+                    ),
+                    0
                 )
-            )
-            /
-            NULLIF(
-                AVG(price) FILTER (
-                    WHERE EXTRACT(YEAR FROM date) = (
-                        SELECT MIN(EXTRACT(YEAR FROM date))
-                        FROM food_prices
-                    )
-                ),
-                0
-            )
-        ) * 100,
-        2
-    ) AS percentage_change
+            ) * 100,
+            2
+        ) AS percentage_change
 
-FROM food_prices
+        FROM food_prices
 
-GROUP BY commodity
+        GROUP BY commodity
 
-HAVING
-    AVG(price) FILTER (
-        WHERE EXTRACT(YEAR FROM date) = (
-            SELECT MIN(EXTRACT(YEAR FROM date))
+        HAVING
+            AVG(price) FILTER (
+                WHERE EXTRACT(YEAR FROM date) = (
+                    SELECT MIN(EXTRACT(YEAR FROM date))
+                    FROM food_prices
+                )
+            ) IS NOT NULL
+
+            AND
+
+            AVG(price) FILTER (
+                WHERE EXTRACT(YEAR FROM date) = (
+                    SELECT MAX(EXTRACT(YEAR FROM date))
+                    FROM food_prices
+                )
+            ) IS NOT NULL
+
+        ORDER BY percentage_change DESC
+
+        LIMIT 10;
+    
+    -- 2.2 Regional comparison: What is the average price per commodity category, grouped by region/country? Rank countries within each category using a window function.
+        -- The table does not have a region column, I used the countryiso3 column to group by country.
+        WITH country_category_prices AS (
+            SELECT
+                category,
+                countryiso3,
+                AVG(price) AS average_price
             FROM food_prices
+            GROUP BY
+                category,
+                countryiso3
         )
-    ) IS NOT NULL
 
-    AND
-
-    AVG(price) FILTER (
-        WHERE EXTRACT(YEAR FROM date) = (
-            SELECT MAX(EXTRACT(YEAR FROM date))
-            FROM food_prices
-        )
-    ) IS NOT NULL
-
-ORDER BY percentage_change DESC
-
-LIMIT 10;
+        SELECT
+            category,
+            countryiso3,
+            ROUND(average_price, 2) AS average_price,
+            RANK() OVER (
+                PARTITION BY category
+                ORDER BY average_price DESC
+            ) AS country_rank
+        FROM country_category_prices
+        ORDER BY
+            category,
+            country_rank;
