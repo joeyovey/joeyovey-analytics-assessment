@@ -94,6 +94,111 @@ def main():
 
     print("Saved summary_stats.csv")
 
+    print("\nCreating top movers chart...")
+
+    yearly_prices = (
+        df.assign(
+            year=df["date"].dt.year
+        )
+        .groupby(["commodity", "year"])["price"]
+        .mean()
+        .reset_index()
+    )
+
+    years = sorted(
+        yearly_prices["year"].unique()
+    )
+
+    if len(years) >= 2:
+
+        first_year = years[0]
+        last_year = years[-1]
+
+        start_prices = (
+            yearly_prices[
+                yearly_prices["year"] == first_year
+            ]
+            .set_index("commodity")["price"]
+        )
+
+        end_prices = (
+            yearly_prices[
+                yearly_prices["year"] == last_year
+            ]
+            .set_index("commodity")["price"]
+        )
+
+        movers = pd.DataFrame({
+            "start_price": start_prices,
+            "end_price": end_prices
+        }).dropna()
+
+        movers["percentage_change"] = (
+            (movers["end_price"] - movers["start_price"])
+            / movers["start_price"].replace(0, np.nan)
+        ) * 100
+
+        movers = (
+            movers
+            .sort_values(
+                "percentage_change",
+                ascending=False
+            )
+            .head(10)
+        )
+
+        plt.figure(figsize=(12, 8))
+
+        plt.barh(
+            movers.index,
+            movers["percentage_change"]
+        )
+
+        plt.xlabel("Percentage Change (%)")
+        plt.ylabel("Commodity")
+        plt.title(
+            f"Top 10 Commodity Price Movers "
+            f"({first_year}–{last_year})"
+        )
+
+        plt.gca().invert_yaxis()
+        plt.tight_layout()
+
+        plt.savefig(
+            f"{OUTPUT_DIR}/top_movers.png",
+            dpi=200
+        )
+
+        plt.close()
+
+    else:
+
+        plt.figure(figsize=(12, 8))
+
+        plt.text(
+            0.5,
+            0.5,
+            "Only one year is available.\n"
+            "Year-over-year price movement cannot be calculated.",
+            ha="center",
+            va="center",
+            fontsize=20
+        )
+
+        plt.axis("off")
+        plt.title("Top Movers — Data Limitation")
+
+        plt.tight_layout()
+
+        plt.savefig(
+            f"{OUTPUT_DIR}/top_movers.png",
+            dpi=200
+        )
+
+        plt.close()
+
+    print("Saved top_movers.png")
+
 
 if __name__ == "__main__":
     main()
