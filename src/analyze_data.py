@@ -74,6 +74,26 @@ def main():
     print(f"Rows dropped: {rows_dropped}")
     print(f"Rows remaining: {rows_after}")
 
+    print("\nCreating summary statistics...")
+
+    numeric_df = df.select_dtypes(
+        include=np.number
+    )
+
+    summary_stats = pd.DataFrame({
+        "min": numeric_df.min(),
+        "max": numeric_df.max(),
+        "mean": numeric_df.mean(),
+        "median": numeric_df.median(),
+        "std": numeric_df.std()
+    })
+
+    summary_stats.to_csv(
+        f"{OUTPUT_DIR}/summary_stats.csv"
+    )
+
+    print("Saved summary_stats.csv")
+
 
 if __name__ == "__main__":
     main()
