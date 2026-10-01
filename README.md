@@ -2,10 +2,24 @@
 
 This project analyses global food price data using **Python, PostgreSQL, SQL, Pandas, and Docker**.
 
+## Data Source 
+[Kaggle: Global Food Prices Dataset](https://www.kaggle.com/datasets/jocelyndumlao/global-food-prices)
+
 The analysis includes data quality checks, SQL analysis, summary statistics, price trends, price movements, and volatility.
 
-## Data Decisions
+## Technologies Used
+* Python 3.11
+* PostgreSQL 15
+* Docker and Docker Compose
+* Pandas
+* NumPy
+* SQLAlchemy
+* psycopg2
+* Matplotlib
+* Git and GitHub
 
+
+## Data Decisions
 * The dataset contains **245,288 records.**
 * Dates and numeric columns were converted to the correct data types.
 * No records were removed during the final Python cleaning step.
@@ -15,7 +29,6 @@ The analysis includes data quality checks, SQL analysis, summary statistics, pri
 * The data covers **15 January 2026 to 15 September 2026.**
 
 ### Important Limitation
-
 The dataset contains **only 2026 data.**
 Because there is no previous year in the dataset, a true year-over-year comparison cannot be calculated.
 
@@ -51,7 +64,47 @@ Because only one year is available, the assessment's requested first-year versus
 ### 6. Findings
 `findings.md` contains the main findings from the analysis.
 
-## How to Run the Project
+# Database
+The data is stored in PostgreSQL.
+The main table is:
+
+```text
+food_prices
+```
+The database is created automatically by Docker Compose.
+The database configuration is:
+```text
+Database: assessment_db
+User: postgres
+Password: postgres
+Host: postgres
+Port: 5432
+```
+These settings are used inside the Docker network.
+---
+
+# How to Clone the Project
+## Step 1: Install Git
+Make sure Git is installed on your computer.
+Check it with:
+```bash
+git --version
+```
+---
+
+## Step 2: Install Docker
+Install Docker Desktop and make sure Docker is running.
+Check Docker with:
+```bash
+docker --version
+```
+Also check Docker Compose:
+```bash
+docker compose version
+```
+---
+
+## Step 3: Clone the project
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/joeyovey/joeyovey-analytics-assessment
