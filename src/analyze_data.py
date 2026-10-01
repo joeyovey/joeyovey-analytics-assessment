@@ -261,6 +261,88 @@ def main():
 
     print("Saved price_trend.png")
 
+    # Chart comparing price volatility across commodities. Commodities that has prices that vary the most.
+    print("\nCreating volatility chart...")
+
+    volatility = (
+        df.groupby("commodity")["price"]
+        .agg(
+            price_std="std",
+            record_count="count"
+        )
+        .reset_index()
+    )
+
+    volatility = volatility[
+        volatility["record_count"] > 1
+    ]
+
+    volatility = (
+        volatility
+        .sort_values(
+            "price_std",
+            ascending=False
+        )
+        .head(15)
+    )
+
+    plt.figure(figsize=(12, 8))
+
+    plt.barh(
+        volatility["commodity"],
+        volatility["price_std"]
+    )
+
+    plt.xlabel("Price Standard Deviation")
+    plt.ylabel("Commodity")
+    plt.title(
+        "Price Volatility Across Commodities"
+    )
+
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+
+    plt.savefig(
+        f"{OUTPUT_DIR}/volatility.png",
+        dpi=200
+    )
+
+    plt.close()
+
+    print("Saved volatility.png")
+
+    # 3–5 bullet points summarising  most interesting findings
+    print("\nCreating findings report...")
+
+    nigeria_average = (
+        df.loc[
+            df["countryiso3"] == "NGA",
+            "price"
+        ].mean()
+    )
+
+    highest_volatility = (
+        volatility.iloc[0]["commodity"]
+        if not volatility.empty 
+        else "Not available"
+    )
+
+    findings = f"""
+- The dataset currently contains data from {df["date"].dt.year.min()} to {df["date"].dt.year.max()}. Because only one year is available, a true year-over-year price movement cannot be calculated.
+- The average recorded food price for Nigeria in the available dataset is {nigeria_average:,.2f}.
+- The commodity with the highest observed price standard deviation is {highest_volatility}, indicating the largest price variation among the commodities analysed.
+- The dataset contains {len(df):,} usable price records after cleaning, with {rows_dropped:,} rows removed during the analysis cleaning step.   
+"""
+
+    with open(
+        f"{OUTPUT_DIR}/findings.md",
+        "w",
+        encoding="utf-8"
+    ) as file:
+        file.write(findings)
+
+    print("Saved findings.md")
+
 
 if __name__ == "__main__":
     main()
