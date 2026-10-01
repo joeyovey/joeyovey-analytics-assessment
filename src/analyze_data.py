@@ -199,6 +199,68 @@ def main():
 
     print("Saved top_movers.png")
 
+    # Line chart showing price over time for at least 3 commodities in one country
+    print("\nCreating price trend chart...")
+
+    country_df = df[
+        df["countryiso3"] == "NGA"
+    ].copy()
+
+    top_commodities = (
+        country_df["commodity"]
+        .value_counts()
+        .head(3)
+        .index
+        .tolist()
+    )
+
+    trend_df = (
+        country_df[
+            country_df["commodity"].isin(
+                top_commodities
+            )
+        ]
+        .groupby(
+            ["date", "commodity"]
+        )["price"]
+        .mean()
+        .reset_index()
+    )
+
+    plt.figure(figsize=(14, 8))
+
+    for commodity in top_commodities:
+
+        commodity_data = trend_df[
+            trend_df["commodity"] == commodity
+        ]
+
+        plt.plot(
+            commodity_data["date"],
+            commodity_data["price"],
+            label=commodity
+        )
+
+    plt.xlabel("Date")
+    plt.ylabel("Average Price")
+    plt.title(
+        "Food Price Trend for Three Commodities in Nigeria"
+    )
+
+    plt.legend()
+    plt.xticks(rotation=45)
+
+    plt.tight_layout()
+
+    plt.savefig(
+        f"{OUTPUT_DIR}/price_trend.png",
+        dpi=200
+    )
+
+    plt.close()
+
+    print("Saved price_trend.png")
+
 
 if __name__ == "__main__":
     main()
