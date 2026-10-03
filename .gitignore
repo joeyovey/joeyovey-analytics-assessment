@@ -20,4 +20,4 @@ Thumbs.db
 *.log
 
 # Data
-data/*.csv
+# data/*.csv
